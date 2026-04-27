@@ -151,9 +151,19 @@ def main():
                 except Exception:
                     pass
 
+        # 使用配置的 since 日期，默认 2026-01-01
+        since_date = export_cfg.get("since", "2026-01-01")
         if not first_time:
-            # 默认从 2023-08 开始（与图片数据一致）
-            first_time = "2023-08-01"
+            first_time = since_date
+        else:
+            # 如果历史记录早于 since，则从 since 开始
+            try:
+                first_dt = datetime.strptime(first_time[:10], "%Y-%m-%d")
+                since_dt = datetime.strptime(since_date, "%Y-%m-%d")
+                if first_dt < since_dt:
+                    first_time = since_date
+            except ValueError:
+                first_time = since_date
         if not last_time:
             last_time = datetime.now().strftime("%Y-%m-%d")
 

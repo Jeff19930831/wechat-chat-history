@@ -26,3 +26,5 @@ export:
   split_by_month: true
   # 增量导出: 跳过已存在的月份文件
   incremental: true
+  # 只导出指定日期之后的记录
+  since: "2026-01-01"
