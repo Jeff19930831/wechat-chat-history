@@ -1,0 +1,28 @@
+# 目标群聊配置
+# 与 wechat-ai-daily 保持一致
+
+groups:
+  - name: "【VIP】建龙北京"
+    alias: "jianlong-beijing"
+    enabled: true
+  - name: "中国矿产市场报告联系人群"
+    alias: "zhongkuang-report"
+    enabled: true
+  - name: "建龙集团市场分析交流群"
+    alias: "jianlong-market"
+    enabled: true
+  - name: "Mysteel-铁矿石矿工群（正式）"
+    alias: "mysteel-miner"
+    enabled: true
+  - name: "Mysteel铁矿石资讯SVIP正式2群"
+    alias: "mysteel-svip"
+    enabled: true
+
+# 导出配置
+export:
+  output_base: "D:/Wechat_File/Wechat_ChatHistory"
+  format: "markdown"
+  # 按月分割，格式: YYYY_MM
+  split_by_month: true
+  # 增量导出: 跳过已存在的月份文件
+  incremental: true
