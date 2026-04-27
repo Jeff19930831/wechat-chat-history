@@ -24,14 +24,10 @@ ALT_RE = re.compile(r"\[(\d{4}-\d{2}-\d{2}[\sT]\d{2}:\d{2}:\d{2}[^\]]*)\]\s*\*\*
 
 
 def parse_sender_and_time(line):
-    """从消息行解析发送者和时间"""
-    # 尝试格式1: **发送者** [时间]: 内容
-    m = re.match(r"\*\*(.+?)\*\*\s*\[(.+?)\]\s*:\s*(.+)", line)
-    if m:
-        return m.group(1).strip(), m.group(2).strip(), m.group(3).strip()
-
-    # 尝试格式2: [时间] **发送者**: 内容
-    m = re.match(r"\[(.+?)\]\s*\*\*(.+?)\*\*\s*:\s*(.+)", line)
+    """从消息行解析发送者和时间
+    格式: - [YYYY-MM-DD HH:MM] 发送者: 内容
+    """
+    m = re.match(r"- \[(\d{4}-\d{2}-\d{2} \d{2}:\d{2})\] (.+?): (.+)", line)
     if m:
         return m.group(2).strip(), m.group(1).strip(), m.group(3).strip()
 
