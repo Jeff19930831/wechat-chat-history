@@ -64,9 +64,11 @@ def main():
             continue
 
         # 目标路径: 分类/群聊/年月/文件名
+        # 类别名中的 / 替换为 _，避免创建嵌套目录
+        safe_cat = cat.replace('/', '_')
         month_dir = os.path.dirname(rel_path)
         filename = os.path.basename(rel_path)
-        dst_dir = os.path.join(OUTPUT_BASE, cat, group, month_dir)
+        dst_dir = os.path.join(OUTPUT_BASE, safe_cat, group, month_dir)
         dst = os.path.join(dst_dir, filename)
 
         os.makedirs(dst_dir, exist_ok=True)
