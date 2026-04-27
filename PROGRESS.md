@@ -28,14 +28,18 @@
 - [x] 同步 Dashboard
 
 ### 待验证
-- [ ] 运行 export_chats.py 验证 wechat-cli export 输出格式
-- [ ] 根据实际导出格式调整消息解析正则
-- [ ] 验证大规模导出性能（24 个月 × 5 群聊）
+- [x] 运行 export_chats.py 验证 wechat-cli export 输出格式 ✅
+- [x] 根据实际导出格式调整消息解析正则 ✅
+- [x] 验证导出性能（4 个月 × 5 群聊）✅
+
+### 已产出
+- 20 个 Markdown 月份文件（`D:\Wechat_File\Wechat_ChatHistory\`）
+- `_keyword_stats.json` — 5 群关键词统计
+- `_member_activity.json` — 5 群成员活跃度分析
 
 ### 下一步
-1. 首次全量导出 5 个群聊的历史记录
-2. 根据实际导出结果调整解析逻辑
-3. 生成关键词和活跃度分析报告
+1. 根据实际使用反馈优化停用词和解析逻辑
+2. 考虑将关键词/活跃度报告集成到飞书日报
 
 ---
 
