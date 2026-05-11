@@ -7,6 +7,8 @@
 import json
 import glob
 import os
+import sys
+import time
 import shutil
 import subprocess
 from concurrent.futures import ProcessPoolExecutor, as_completed
@@ -20,8 +22,11 @@ TEMP_DIR = "D:/ClaudeCode/kimi_temp"
 IMAGE_BASE = "D:/Wechat_File/Wechat_Image"
 MAX_WORKERS = 4  # Kimi 并行数（降低避免 429）
 
-# 每个类别每群选取的数量
-SAMPLES_PER_CATEGORY = 1
+# 每个类别每群选取的数量（0 = 不限）
+SAMPLES_PER_CATEGORY = 0
+
+# API 调用间隔（秒），防止 429
+API_DELAY = 5
 
 EXTRACT_PROMPT = """请仔细分析这张钢铁行业数据图片，提取以下结构化信息：
 
@@ -66,11 +71,13 @@ def get_typical_images():
             dt = parse_date_from_path(path)
             typical[group][cat].append((dt, path, info["summary"]))
 
-    # 每类每群取最新的 N 张
+    # 每类每群取最新的 N 张（0 = 全部）
     result = []
     for group in sorted(typical.keys()):
         for cat in sorted(typical[group].keys()):
-            items = sorted(typical[group][cat], key=lambda x: x[0], reverse=True)[:SAMPLES_PER_CATEGORY]
+            items = sorted(typical[group][cat], key=lambda x: x[0], reverse=True)
+            if SAMPLES_PER_CATEGORY > 0:
+                items = items[:SAMPLES_PER_CATEGORY]
             for dt, path, summary in items:
                 result.append({
                     "group": group,
@@ -156,24 +163,45 @@ def extract_image_data(task):
 def main():
     os.makedirs(TEMP_DIR, exist_ok=True)
 
+    output_file = "D:/Wechat_File/Wechat_Image/_image_data_extracted.json"
+
+    # 断点续传：加载已有结果
+    existing = {}
+    if os.path.exists(output_file):
+        with open(output_file, 'r', encoding='utf-8') as f:
+            old = json.load(f)
+        for r in old.get("results", []):
+            existing[r["path"]] = r
+        print(f"已有 {len(existing)} 条历史结果，将跳过")
+
     typical = get_typical_images()
     total = len(typical)
     print(f"=" * 60)
     print(f"Kimi 图片深度数据提取")
-    print(f"典型图片数: {total}")
+    print(f"待提取图片数: {total}")
+    print(f"API 间隔: {API_DELAY}s")
     print(f"=" * 60)
 
-    # 准备任务
-    tasks = [{"idx": i, **t} for i, t in enumerate(typical)]
+    # 跳过已处理的
+    tasks = []
+    for i, t in enumerate(typical):
+        if t["path"] in existing:
+            continue
+        tasks.append({"idx": i, **t})
 
-    results = []
-    success = 0
-    failed = 0
-    rate_limited = 0
+    skipped = total - len(tasks)
+    print(f"跳过已处理: {skipped}")
+    print(f"待处理: {len(tasks)}")
 
-    # 串行执行（避免 429）
+    # 合并已有结果
+    results = list(existing.values())
+    success = sum(1 for r in results if r.get("status") == "success")
+    failed = sum(1 for r in results if r.get("status") == "error")
+    rate_limited = sum(1 for r in results if r.get("status") == "rate_limited")
+
+    # 串行执行
     for i, task in enumerate(tasks, 1):
-        print(f"\n[{i}/{total}] {task['group']} | {task['category']}")
+        print(f"\n[{i}/{len(tasks)}] {task['group']} | {task['category']}")
         print(f"  图片: {task['path']}")
         print(f"  摘要: {task['summary'][:50]}...")
 
@@ -188,17 +216,38 @@ def main():
             print(f"  日期: {data.get('date', 'N/A')}")
         elif result["status"] == "rate_limited":
             rate_limited += 1
-            print(f"  状态: ⚠️ 限流")
+            print(f"  状态: ⚠️ 限流，等待 60s...")
+            time.sleep(60)
         else:
             failed += 1
             print(f"  状态: ❌ {result.get('error', '未知错误')}")
 
-    # 保存结果
-    output_file = "D:/Wechat_File/Wechat_Image/_image_data_extracted.json"
+        # 每次处理后保存（断点续传）
+        if i % 10 == 0 or i == len(tasks):
+            with open(output_file, 'w', encoding='utf-8') as f:
+                json.dump({
+                    "meta": {
+                        "total": total,
+                        "processed": skipped + i,
+                        "success": success,
+                        "failed": failed,
+                        "rate_limited": rate_limited,
+                        "date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    },
+                    "results": results,
+                }, f, ensure_ascii=False, indent=2)
+            print(f"  [已保存进度 {skipped + i}/{total}]")
+
+        # API 间隔
+        if i < len(tasks):
+            time.sleep(API_DELAY)
+
+    # 最终保存
     with open(output_file, 'w', encoding='utf-8') as f:
         json.dump({
             "meta": {
                 "total": total,
+                "processed": total,
                 "success": success,
                 "failed": failed,
                 "rate_limited": rate_limited,

@@ -34,7 +34,7 @@ PRICE_PATTERN = re.compile(
 # 成交正则
 # 格式: [玫瑰]实时成交【n】: 港口 品种 价格 涨跌 [盘中/清底] （前一日行情 前值）
 DEAL_PATTERN = re.compile(
-    r'\[玫瑰\]实时成交【\d+】:\s*'
+    r'(?:\[玫瑰\])?实时成交【\d+】:\s*'
     r'(\S+)\s+'
     r'(\S+)\s+'
     r'(\d+)'
@@ -72,6 +72,9 @@ PRODUCT_KEYWORDS = {
     '高硅印度粉': ['高硅印度粉'],
     '塞拉利昂粉': ['塞拉利昂粉'],
     '托克粉': ['托克粉'],
+    'FMG筛后块': ['FMG筛后块'],
+    '巴西筛后块': ['巴西筛后块'],
+    '镍矿': ['镍矿'],
 }
 
 
@@ -118,21 +121,32 @@ def extract_from_chat(filepath):
     lines = text.split("\n")
 
     records = []
+    last_datetime = None
     for line in lines:
-        line = line.strip()
-        if not line.startswith("- ["):
+        stripped = line.strip()
+
+        # 普通消息: - [2026-05-01 12:00] ...
+        time_match = re.match(r"- \[(\d{4}-\d{2}-\d{2} \d{2}:\d{2})\]", stripped)
+        if time_match:
+            last_datetime = time_match.group(1)
+
+        # 回复消息: ↳ 回复 xxx: HH:MM ...
+        reply_time_match = re.match(r"↳ 回复 \S+: (\d{2}:\d{2})", stripped)
+        if reply_time_match and last_datetime:
+            time_only = reply_time_match.group(1)
+            date_part = last_datetime[:10]
+            last_datetime = f"{date_part} {time_only}"
+
+        if not stripped.startswith("- [") and not stripped.startswith("↳ 回复"):
             continue
 
-        # 提取时间
-        time_match = re.match(r"- \[(\d{4}-\d{2}-\d{2} \d{2}:\d{2})\]", line)
-        if not time_match:
+        if not last_datetime:
             continue
-        datetime_str = time_match.group(1)
 
         # 提取价格数据
-        data = parse_price_line(line)
+        data = parse_price_line(stripped)
         if data:
-            data["datetime"] = datetime_str
+            data["datetime"] = last_datetime
             records.append(data)
 
     return records

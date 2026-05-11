@@ -100,6 +100,10 @@ def sanitize_folder_name(name):
 
 
 def main():
+    refresh = "--refresh" in sys.argv
+    if refresh:
+        sys.argv.remove("--refresh")
+
     # 读取配置
     with open(CONFIG_FILE, "r", encoding="utf-8") as f:
         config = yaml.safe_load(f)
@@ -113,6 +117,8 @@ def main():
     print(f"微信群聊聊天记录批量导出")
     print(f"输出目录: {output_base}")
     print(f"目标群聊: {len(groups)} 个")
+    if refresh:
+        print(f"模式: 刷新当前月（{datetime.now().strftime('%Y_%m')}）")
     print(f"=" * 60)
 
     total_exported = 0
@@ -131,7 +137,7 @@ def main():
             total_failed += 1
             continue
 
-        total_msgs = stats.get("total_messages", 0)
+        total_msgs = stats.get("total", stats.get("total_messages", 0))
         print(f"  消息总数: {total_msgs}")
 
         # 获取时间范围
@@ -180,9 +186,13 @@ def main():
         group_dir.mkdir(parents=True, exist_ok=True)
 
         # 按月导出
+        current_month = datetime.now().strftime("%Y_%m")
         months = get_month_range(start_date, end_date)
         for month_label, start_t, end_t in months:
-            if incremental:
+            # --refresh: 只重新导出当前月，跳过历史月份
+            if refresh and month_label != current_month:
+                continue
+            if incremental and not refresh:
                 out_file = group_dir / f"{month_label}.md"
                 if out_file.exists():
                     total_skipped += 1
