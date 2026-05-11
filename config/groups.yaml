@@ -17,6 +17,9 @@ groups:
   - name: "Mysteel铁矿石资讯SVIP正式2群"
     alias: "mysteel-svip"
     enabled: true
+  - name: "⚓️⚠️ 禁言 Port News T3"
+    alias: "port-news-t3"
+    enabled: true
 
 # 导出配置
 export:
