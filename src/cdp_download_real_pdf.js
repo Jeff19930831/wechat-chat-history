@@ -120,7 +120,7 @@ async function downloadFilesFromPage(page, pageUrl, pageLabel) {
       // Download using preview API
       const downloadUrl = `https://internal-api-drive-stream.feishu.cn/space/api/box/stream/download/preview/${capturedToken}?preview_type=16&version=${capturedVersion || ''}&mount_point=docx_file`;
 
-      const resp = await page.request.get(downloadUrl);
+      const resp = await page.request.get(downloadUrl, { timeout: 120000 });
       const body = await resp.body();
 
       if (body.length > 5000) {

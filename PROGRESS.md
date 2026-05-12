@@ -13,9 +13,9 @@
 - [x] 新增 Port News T3 群配置 — config/groups.yaml
 - [x] 飞书链接提取与分类 — extract_feishu_links.py（224 PDF + 193 text 链接）
 - [x] 飞书文字内容提取 — cdp_fetch_text.js（193/193 成功，输出 markdown）
-- [x] 飞书嵌入PDF下载 — cdp_download_real_pdf.js（点击文件块→拦截API→下载实际PDF）
-  - 首次测试：4/4 PDF 成功（真实PDF内容，非打印页面）
-  - 全量下载后台运行中（224 个页面）
+- [x] 飞书嵌入PDF下载 — cdp_download_real_pdf.js 全量完成
+  - 409个真实PDF，20GB（224个页面，203页完成，385成功/21超时失败）
+  - 清理旧的假PDF（page.pdf()打印页面，86MB）和废弃脚本
 - [x] WeChat缓存PDF整理 — 42个PDF从 WeChat 文件缓存复制
 
 ### 关键技术发现
@@ -26,7 +26,7 @@
 
 ### 已产出
 - `data/feishu_links.json` — 224 PDF + 193 text 链接分类
-- `D:/Wechat_File/Wechat_ChatHistory/port-news-t3/feishu/pdf_real/` — 实际嵌入PDF
+- `D:/Wechat_File/Wechat_ChatHistory/port-news-t3/feishu/pdf_real/` — 409个实际嵌入PDF（20GB）
 - `D:/Wechat_File/Wechat_ChatHistory/port-news-t3/feishu/text/` — 193 个 markdown 文件
 - `D:/Wechat_File/Wechat_ChatHistory/port-news-t3/pdf/` — 42 个 WeChat 缓存PDF
 
