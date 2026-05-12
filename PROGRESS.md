@@ -4,6 +4,34 @@
 
 ---
 
+## 2026-05-12 — Port News T3 飞书文档下载 + Pipeline 优化
+
+### 已完成
+- [x] 修复 Git push SSL 问题 — 成功 push 到 GitHub
+- [x] 增量导出 2026-05 聊天数据 — export_chats.py --refresh
+- [x] 正则优化 extract_price_data.py — `[玫瑰]` 可选、回复行处理、品种映射
+- [x] 新增 Port News T3 群配置 — config/groups.yaml
+- [x] 飞书链接提取与分类 — extract_feishu_links.py（224 PDF + 193 text 链接）
+- [x] 飞书文字内容提取 — cdp_fetch_text.js（193/193 成功，输出 markdown）
+- [x] 飞书嵌入PDF下载 — cdp_download_real_pdf.js（点击文件块→拦截API→下载实际PDF）
+  - 首次测试：4/4 PDF 成功（真实PDF内容，非打印页面）
+  - 全量下载后台运行中（224 个页面）
+- [x] WeChat缓存PDF整理 — 42个PDF从 WeChat 文件缓存复制
+
+### 关键技术发现
+- 飞书 docx 页面内嵌入PDF文件：`data-block-type="file"` + `data-record-id`
+- 点击文件块后拦截 `box/stream/download/preview/{token}` 获取真实PDF
+- `page.pdf()` 只是打印网页为PDF，不是实际嵌入的PDF
+- 需要用 Playwright CDP（非curl）因飞书需要登录
+
+### 已产出
+- `data/feishu_links.json` — 224 PDF + 193 text 链接分类
+- `D:/Wechat_File/Wechat_ChatHistory/port-news-t3/feishu/pdf_real/` — 实际嵌入PDF
+- `D:/Wechat_File/Wechat_ChatHistory/port-news-t3/feishu/text/` — 193 个 markdown 文件
+- `D:/Wechat_File/Wechat_ChatHistory/port-news-t3/pdf/` — 42 个 WeChat 缓存PDF
+
+---
+
 ## 2026-04-27 — 图片分析与数据提取 pipeline 完成
 
 ### 已完成

@@ -4,62 +4,63 @@
 
 ## 当前目标
 
-wechat-chat-history 项目已进入**运行中**状态。核心 pipeline 全部开发完成，本轮重点是完成图片 AI 分析 pipeline 和结构化数据提取。
+飞书嵌入PDF下载和图片AI提取两个后台任务运行中。核心pipeline已完成，等待全量数据采集完成后进行结构化分析。
 
 ## 最近完成
 
-1. **聊天记录导出** — 5 群 × 4 个月 = 20 个 Markdown 文件
-2. **关键词/活跃度分析** — `_keyword_stats.json` + `_member_activity.json`
-3. **图片过滤分类** — 1515 张有效图片，去除 17 张无用图，按 10 类别分类
-4. **Kimi 深度提取** — 28 张典型图片，22 张成功提取结构化数据
-5. **分类整理** — 1515 张图片复制到 `Wechat_Image_Categorized/`
-6. **月度报告** — `_monthly_report_2026_04.md`（5 群统计）
-7. **价格数据提取** — `_price_data_2026_04.md`（276 条报盘记录，7 品种汇总）
-8. **文档更新** — README.md / PROGRESS.md / HANDOFF.md 全部更新
+1. **飞书嵌入PDF下载** — `cdp_download_real_pdf.js` 可正确下载实际嵌入PDF（非打印页面），后台运行中
+2. **飞书文字内容提取** — `cdp_fetch_text.js` 193/193 成功
+3. **飞书链接提取** — `extract_feishu_links.py` 分类224 PDF + 193 text链接
+4. **Git push修复** — SSL问题已解决，代码已推送
+5. **增量导出** — 2026-05聊天数据已导出
+6. **正则优化** — `extract_price_data.py` 扩展品种匹配
 
 ## 下一步
 
-1. **Git push** — 将最新代码 push 到 GitHub（上次 push 因 SSL 失败）
-2. **价格数据集成** — 考虑将 `_price_data_YYYY_MM.md` 推送到飞书或邮件
-3. **正则优化** — `extract_price_data.py` 的 PRICE_PATTERN 和 DEAL_PATTERN 可能需要扩展以覆盖更多品种格式
-4. **图片提取扩展** — 当前仅提取 28 张典型图片，可考虑扩展到全部 1515 张
-5. **下月数据** — 5 月初运行 export_chats.py 增量导出 2026-05 数据
+1. **等待PDF下载完成** — 后台任务 `bayc39niy` 运行中（224页面）
+2. **等待图片提取完成** — 1515张图片Kimi AI提取（约57%进度）
+3. **价格数据集成** — 将结构化价格数据推送到飞书/邮件
+4. **Port News T3综合分析** — 整合PDF研报、文字内容、价格数据
 
 ## 阻塞点
 
-- **Git push SSL 错误**：上次 push 失败，可能需要检查网络或 GitHub token
-- **Kimi 429 限流**：image_data_extract.py 高并发时触发 API 限流，已降低 MAX_WORKERS=4
+- 无
 
 ## 关键文件
 
 | 文件 | 作用 | 注意事项 |
 |------|------|----------|
-| `src/extract_price_data.py` | 价格数据提取 | 正则需持续优化匹配更多品种 |
-| `src/image_data_extract.py` | Kimi 图片深度提取 | SAMPLES_PER_CATEGORY=1，避免 429 |
-| `src/monthly_report.py` | 月度统计报告 | 硬编码 month="2026_04"，下月需改 |
-| `config/groups.yaml` | 群聊配置 | since 日期控制导出范围 |
-| `README.md` | 项目总览 | 功能变化时同步 |
-| `PROGRESS.md` | 进展记录 | 每轮工作结束更新 |
+| `src/cdp_download_real_pdf.js` | 飞书嵌入PDF下载 | 后台运行，有进度追踪 |
+| `src/cdp_fetch_text.js` | 飞书文字内容提取 | 已完成193/193 |
+| `src/extract_feishu_links.py` | 飞书链接提取分类 | 输出feishu_links.json |
+| `src/extract_price_data.py` | 价格数据提取 | 正则已优化 |
+| `src/image_data_extract.py` | Kimi图片深度提取 | 后台运行中 |
+| `src/export_chats.py` | 聊天记录导出 | 支持--refresh |
+| `data/feishu_links.json` | 链接分类数据 | 224 PDF + 193 text |
+| `data/pdf_download_progress.json` | PDF下载进度 | 按页面追踪 |
+| `data/browser_profile/` | Playwright浏览器profile | 包含登录状态，勿删 |
 
 ## 验证命令
 
 ```bash
-# 价格数据提取
-cd D:/ClaudeCode/wechat-chat-history/src
-python extract_price_data.py
+# 检查PDF下载进度
+ls D:/Wechat_File/Wechat_ChatHistory/port-news-t3/feishu/pdf_real/ | wc -l
+du -sh D:/Wechat_File/Wechat_ChatHistory/port-news-t3/feishu/pdf_real/
 
-# 月度报告
-cd D:/ClaudeCode/wechat-chat-history/src
-python monthly_report.py
+# 检查文字内容
+ls D:/Wechat_File/Wechat_ChatHistory/port-news-t3/feishu/text/ | wc -l
+
+# 重新运行PDF下载（如需）
+cd D:/ClaudeCode/wechat-chat-history
+node src/cdp_download_real_pdf.js --start 0 --count 5
 
 # Git 状态
 cd D:/ClaudeCode/wechat-chat-history
-git status
-git log --oneline -5
+git status && git log --oneline -3
 ```
 
 ## 当前工作区
 
-- 分支：main
-- 最近提交：（待确认，上次 push 失败）
-- 未提交改动：README.md、PROGRESS.md、HANDOFF.md、全部 src/*.py
+- 分支：master
+- 最近提交：`35443a0 feat: refresh mode, full image extraction, regex improvements`
+- 未提交改动：飞书下载相关脚本（cdp_*.js, extract_feishu_links.py等）
