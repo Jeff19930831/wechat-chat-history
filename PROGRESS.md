@@ -4,6 +4,30 @@
 
 ---
 
+## 2026-05-27 — PortNews 综合分析 pipeline
+
+### 已完成
+- [x] 开发 `src/analyze_portnews.py` — DeepSeek-v4-pro 综合分析
+  - 每日增量提取（品种/价格信号/宏观事件/供应链/情绪 → JSON）
+  - 评论主题提取（THE PORT 群聊，分块30条/次）
+  - 月度综合报告生成（市场概览/宏观/品种/供应链/情绪/展望）
+  - 幂等缓存（`_daily/` 目录），已提取文件跳过
+- [x] 1-5 月历史数据全量分析 — 183/193 文件成功（95%），5份月度报告
+- [x] 创建 `scripts/daily_portnews_analysis.sh` — 每日增量包装脚本
+- [x] 定时任务配置 — 每天 22:07 增量 + 月底综合报告
+- [x] 输出迁移至 `D:\SyncThing\PortNews\analysis\`
+
+### 关键技术决策
+- 从 GLM 5.1（余额不足429）切换到 DeepSeek-v4-pro
+- 评论提取分块处理（30条/次）避免输出截断
+- `extract_json_from_output()` 处理 DeepSeek 的 ```json``` 包装
+
+### 已产出
+- `D:\SyncThing\PortNews\analysis\2026-{01..05}\` — 5个月的分析数据
+  - 每月：`_daily/*.json` + `_structured.json` + `_monthly_summary.md`
+
+---
+
 ## 2026-05-12 — Port News T3 飞书文档下载 + Pipeline 优化
 
 ### 已完成
